@@ -37,7 +37,7 @@ class SimpleTraveler:
 
         rospy.loginfo('Action server started, sending the goal')
         goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = self.identity + '/ ' + 'map'
+        goal.target_pose.header.frame_id = 'map'
         goal.target_pose.header.stamp = rospy.Time.now()
         
         goal.target_pose.pose.position.x = 1.0
