@@ -5,6 +5,7 @@ import actionlib
 from actionlib_msgs.msg import GoalStatus
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
+from std_msgs.msg import String
 import argparse
 
 class SimpleTraveler:
@@ -12,20 +13,21 @@ class SimpleTraveler:
         # Initialize ROS
         rospy.init_node('travel_node')
 
-        self.robot_name = param.identity
+        self.robot_name = param.name
 
         # Move to target position
-        """
-        ** todo **
-        [subscribe] msg 'get to goal' from task manager 
-        [publish] msg 'I arrived!' to task manager
-        """
+        rospy.Subscriber("/scene_manager/move_req", String, self.move_action, queue_size=1)
+        self.move_res_pub = rospy.Publisher('scene_manager/move_res', String, queue_size=1)
 
         # Take a spin on the spot
+        rospy.Subscriber("/scene_manager/ctrl_module_req", String, self.ctrl_module, queue_size=1)
+        self.ctrl_module_res_pub =rospy.Publisher('/scene_manager/ctrl_module_res', String, queue_size=1)
 
         # Come back home (move to initial position)
+        rospy.Subscriber("/scene_manager/go_home", String, self.go_home, queue_size=1)
+        self.come_back_pub = rospy.Publisher('/scene_manager/come_back_home', String, queue_size=1)
 
-    def move_action(self):
+    def move_action(self, msg):
         move_base_topic = self.robot_name + '/' + 'move_base'
         client = actionlib.SimpleActionClient(move_base_topic, MoveBaseAction)
 
@@ -38,7 +40,6 @@ class SimpleTraveler:
         goal.target_pose.header.frame_id = self.identity + '/ ' + 'map'
         goal.target_pose.header.stamp = rospy.Time.now()
         
-        # set position
         goal.target_pose.pose.position.x = 1.0
         goal.target_pose.pose.position.y = 0.0
         goal.target_pose.pose.position.z = 0.0
@@ -48,6 +49,12 @@ class SimpleTraveler:
         goal.target_pose.pose.orientation.y = 0.0
         goal.target_pose.pose.orientation.z = 0.0
         goal.target_pose.pose.orientation.w = 1.0
+
+        """
+        ** todo **
+        set goal using msg
+        make goal point and degree json file
+        """
 
         client.send_goal(goal)
 
@@ -59,13 +66,24 @@ class SimpleTraveler:
         else:
             rospy.loginfo('The base failed to move for some reason')
 
+    """
+        ** todo **
+        ctrl_module() spin degree using given message
+        go_home() go to initial position using given message
+    """
+    def ctrl_module():
+        pass
+
+    def go_home():
+        pass
+
 parser = argparse.ArgumentParser(description="robot specification",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument(
-    '-i', '--identity', required=True, help='Robot Name (multi-robot)') # ex) tb3_1
+    '-n', '--name', required=True, help='Robot Name (multi-robot)') # ex) tb3_1
 args = parser.parse_args()
 
 if __name__ == "__main__":
     simple_traveler = SimpleTraveler(param=args)
-    simple_traveler.move_action()
+    #simple_traveler.move_action() #test
     rospy.spin()
