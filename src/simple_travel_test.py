@@ -27,7 +27,15 @@ class SimpleTraveler:
         rospy.Subscriber("/scene_manager/go_home", String, self.go_home, queue_size=1)
         self.come_back_pub = rospy.Publisher('/scene_manager/come_back_home', String, queue_size=1)
 
-    def move_action(self, msg):
+    def move_action(self, req_data):
+
+        ud_list = req_data.split(" ")
+        id, pos_x, pos_y, ort_z, ort_w = ud_list
+
+        if id != self.robot_name:
+            return
+
+
         move_base_topic = self.robot_name + '/' + 'move_base'
         client = actionlib.SimpleActionClient(move_base_topic, MoveBaseAction)
 
@@ -40,22 +48,19 @@ class SimpleTraveler:
         goal.target_pose.header.frame_id = 'map'
         goal.target_pose.header.stamp = rospy.Time.now()
         
-        goal.target_pose.pose.position.x = 1.0
-        goal.target_pose.pose.position.y = 0.0
+        goal.target_pose.pose.position.x = pos_x
+        goal.target_pose.pose.position.y = pos_y
         goal.target_pose.pose.position.z = 0.0
 
         # set orientation
         goal.target_pose.pose.orientation.x = 0.0
         goal.target_pose.pose.orientation.y = 0.0
-        goal.target_pose.pose.orientation.z = 0.0
-        goal.target_pose.pose.orientation.w = 1.0
-
+        goal.target_pose.pose.orientation.z = ort_z
+        goal.target_pose.pose.orientation.w = ort_w
         """
         ** todo **
-        set goal using msg
-        make goal point and degree json file
+        make helper 'get_goal'
         """
-
         client.send_goal(goal)
 
         rospy.loginfo('Waiting for the result')
@@ -63,6 +68,8 @@ class SimpleTraveler:
 
         if client.get_state() == GoalStatus.SUCCEEDED:
             rospy.loginfo('Hooray, I reached the goal')
+            self.move_res_pub.publish(req_data)
+
         else:
             rospy.loginfo('The base failed to move for some reason')
 
@@ -74,7 +81,7 @@ class SimpleTraveler:
     def ctrl_module():
         pass
 
-    def go_home():
+    def go_home(): #i think i don't need it,,
         pass
 
 parser = argparse.ArgumentParser(description="robot specification",
