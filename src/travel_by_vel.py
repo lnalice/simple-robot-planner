@@ -19,9 +19,10 @@ class SimpleTraveler:
 
         self.robot_name = param.name
         self.total_robot_num = 5
-        self.cmd_vel_topic = '/cmd_vel' # only one robot
+        self.cmd_vel_topic = 'cmd_vel' # only one robot
 
-        rospy.init_node('travel_node'+self.robot_name)
+        self.node_name = 'robot_planner_node_' + self.robot_name
+        rospy.init_node(self.node_name)
 
         # Move to target position
         rospy.Subscriber("/scene_manager/move_req", String, self.move_action, queue_size=1)
@@ -35,25 +36,21 @@ class SimpleTraveler:
         rospy.Subscriber("/scene_manager/go_home", String, self.go_home, queue_size=1)
         self.come_back_pub = rospy.Publisher('/scene_manager/come_back_home', String, queue_size=1)
     
+    def move_by_vel(self, robot_name, seconds: int, lin_vel: tuple, ang_vel:tuple):
 
-    def vels(target_linear_vel, target_angular_vel):
-        return "currently:\tlinear vel %s\t angular vel %s " % (target_linear_vel,target_angular_vel)
-    
-    def move_by_vel(self, robot_name, lin_vel: tuple, ang_vel:tuple):
-
-        # self.cmd_vel_topic = robot_name + '/' + 'cmd_vel' #multi robot
-        self.cmd_vel_topic = '/cmd_vel' # only one robot
-        
+        self.cmd_vel_topic = robot_name + '/cmd_vel' #multi robot
         pub = rospy.Publisher(self.cmd_vel_topic, Twist, queue_size=10)
-
-        twist = Twist()
-        twist.linear.x, twist.linear.y, twist.linear.z = lin_vel
-        twist.angular.x, twist.angular.y, twist.angular.z = ang_vel
-
-        pub.publish(twist)
         
-        rospy.loginfo(self.vels(lin_vel, ang_vel))
+        start_time = rospy.Time.now().to_sec()
+        while(rospy.Time.now().to_sec() - start_time < seconds):
+            twist = Twist()
+            twist.linear.x, twist.linear.y, twist.linear.z = lin_vel
+            twist.angular.x, twist.angular.y, twist.angular.z = ang_vel
+            
+            rospy.sleep(0.1)
 
+            pub.publish(twist)
+            rospy.loginfo("currently:\tlinear vel %s\t angular vel %s " % (lin_vel, ang_vel))
 
     def move_action(self, req_data):
 
@@ -61,31 +58,26 @@ class SimpleTraveler:
         id = ud_list[0]
 
         if id != self.robot_name:
+            rospy.loginfo("this id(%s) is not mine.", id)
             return
-        
-        lin_vel = tuple(float(e) for e in ud_list[1:4])
-        ang_vel = tuple(float(e) for e in ud_list[4:])
+        seconds = int(ud_list[1])
+        lin_vel = tuple(float(e) for e in ud_list[2:5])
+        ang_vel = tuple(float(e) for e in ud_list[5:])
 
         print("robot name is " + id)
         rospy.loginfo("[RobotPlanner-%s] now this robot is moving...", id)
         try:
-            self.move_by_vel(id, lin_vel, ang_vel)
+            self.move_by_vel(id, seconds, lin_vel, ang_vel)
 
-            rospy.sleep(5)
-
-            self.move_by_vel(id, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
+            self.move_by_vel(id, 10, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
 
             self.move_res_pub.publish(req_data)
 
         except:
             print("Failed!")
 
-        finally:
-            self.move_by_vel(id, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
-
-        rospy.loginfo('[RobotPlanner-%s] Waiting for the action server to start', id)
-    
-        rospy.loginfo('[RobotPlanner-%s] Action server started, sending the goal', id)
+        # finally:
+        #     self.move_by_vel(id, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
 
 
     """
