@@ -11,6 +11,9 @@ import argparse
 from publisher.cmdVelPub import moveByVel
 
 STOP_SECONDS = 5
+SPIN_ONCE_SEC = 10.3
+SPIN_ONCE_LIN = (0, 0, 0)
+SPIN_ONCE_ANG = (0, 0, 0.60)
 
 """
 **resource code from turtlebot3_teleop**
@@ -27,6 +30,9 @@ class SimpleTraveler:
 
         self.node_name = 'robot_planner_node_' + self.robot_name
         rospy.init_node(self.node_name)
+
+        #rotation recovery (for localization): rotation once
+        moveByVel(self.robot_name, SPIN_ONCE_SEC, SPIN_ONCE_LIN, SPIN_ONCE_ANG)
 
         # Move to target position
         rospy.Subscriber("/scene_manager/move_req", String, self.move_action, queue_size=1)

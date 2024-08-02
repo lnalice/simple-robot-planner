@@ -9,6 +9,11 @@ from std_msgs.msg import String
 import argparse
 
 from publisher.moveBasePub import moveByBase
+from publisher.cmdVelPub import moveByVel
+
+SPIN_ONCE_SEC = 10.3
+SPIN_ONCE_LIN = (0, 0, 0)
+SPIN_ONCE_ANG = (0, 0, 0.60)
 
 class SimpleTraveler:
     def __init__(self, param):
@@ -17,7 +22,10 @@ class SimpleTraveler:
         self.robot_name = param.name
         self.total_robot_num = 5
 
-        rospy.init_node('travel_node'+self.robot_name)
+        rospy.init_node('robot_planner_node_'+self.robot_name)
+
+        #rotation recovery (for localization): rotation once
+        moveByVel(self.robot_name, SPIN_ONCE_SEC, SPIN_ONCE_LIN, SPIN_ONCE_ANG)
 
         # Move to target position
         rospy.Subscriber("/scene_manager/move_req", String, self.move_action, queue_size=1)
