@@ -8,6 +8,8 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from std_msgs.msg import String
 import argparse
 
+from publisher.moveBasePub import moveByBase
+
 class SimpleTraveler:
     def __init__(self, param):
         # Initialize ROS
@@ -30,54 +32,20 @@ class SimpleTraveler:
         self.come_back_pub = rospy.Publisher('/scene_manager/come_back_home', String, queue_size=1)
 
     def move_action(self, req_data):
-        print()
 
-        ud_list = tuple(str(req_data.data).split(" "))
-        id, pos_x, pos_y, ort_z, ort_w = ud_list
-        print("id"+id)
+        req_list = str(req_data.data).split(" ")
+        req_id, pos_x, pos_y, ort_z, ort_w = tuple(req_list)
 
-        if id != self.robot_name:
+        if req_id != self.robot_name:
+            rospy.loginfo("[RobotPlanner-%s] This ID(%s) is not mine.", self.robot_name, req_id)
             return
-        rospy.sleep(2)
-        # self.move_res_pub.publish(req_data.data) #test
 
-        # move_base_topic = self.robot_name + '/' + 'move_base'
-        move_base_topic = '/move_base' # only one robot
-        client = actionlib.SimpleActionClient(move_base_topic, MoveBaseAction)
+        rospy.sleep(0.1)
 
-        rospy.loginfo('[RobotPlanner-%s] Waiting for the action server to start', id)
-    
-        client.wait_for_server()
-
-        rospy.loginfo('[RobotPlanner-%s] Action server started, sending the goal', id)
-        goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = 'map'
-        goal.target_pose.header.stamp = rospy.Time.now()
-        
-        goal.target_pose.pose.position.x = float(pos_x)
-        goal.target_pose.pose.position.y = float(pos_y)
-        goal.target_pose.pose.position.z = 0.0
-
-        # set orientation
-        goal.target_pose.pose.orientation.x = 0.0
-        goal.target_pose.pose.orientation.y = 0.0
-        goal.target_pose.pose.orientation.z = float(ort_z)
-        goal.target_pose.pose.orientation.w = float(ort_w)
-        """
-        ** todo **
-        make helper 'get_goal'
-        """
-        client.send_goal(goal)
-
-        rospy.loginfo('[RobotPlanner-%s] Waiting for the result',id)
-        client.wait_for_result()
-
-        if client.get_state() == GoalStatus.SUCCEEDED:
-            rospy.loginfo('[RobotPlanner-%s] Hooray, I reached the goal', id)
-            self.move_res_pub.publish(req_data)
-
+        if moveByBase(req_id, (pos_x, pos_y), (ort_z, ort_w)):
+            self.move_res_pub.publish(req_data.data)
         else:
-            rospy.loginfo('[RobotPlanner-%s] The base failed to move for some reason', id)
+            rospy.logerr("[RobotPlanner-%s] Failed! (/move_base)", req_id)
 
     """
         ** todo **

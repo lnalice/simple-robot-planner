@@ -8,6 +8,10 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from std_msgs.msg import String
 import argparse
 
+from publisher.cmdVelPub import moveByVel
+
+STOP_SECONDS = 5
+
 """
 **resource code from turtlebot3_teleop**
 https://github.com/ROBOTIS-GIT/turtlebot3/blob/master/turtlebot3_teleop
@@ -35,50 +39,29 @@ class SimpleTraveler:
         # Come back home (move to initial position)
         rospy.Subscriber("/scene_manager/go_home", String, self.go_home, queue_size=1)
         self.come_back_pub = rospy.Publisher('/scene_manager/come_back_home', String, queue_size=1)
-    
-    def move_by_vel(self, robot_name, seconds: int, lin_vel: tuple, ang_vel:tuple):
-
-        self.cmd_vel_topic = robot_name + '/cmd_vel' #multi robot
-        pub = rospy.Publisher(self.cmd_vel_topic, Twist, queue_size=10)
-        
-        start_time = rospy.Time.now().to_sec()
-        while(rospy.Time.now().to_sec() - start_time < seconds):
-            twist = Twist()
-            twist.linear.x, twist.linear.y, twist.linear.z = lin_vel
-            twist.angular.x, twist.angular.y, twist.angular.z = ang_vel
-            
-            rospy.sleep(0.1)
-
-            pub.publish(twist)
-            rospy.loginfo("currently:\tlinear vel %s\t angular vel %s " % (lin_vel, ang_vel))
 
     def move_action(self, req_data):
 
         ud_list = str(req_data.data).split(" ")
-        id = ud_list[0]
-
-        if id != self.robot_name:
-            rospy.loginfo("this id(%s) is not mine.", id)
-            return
+        req_id = ud_list[0]
         seconds = int(ud_list[1])
         lin_vel = tuple(float(e) for e in ud_list[2:5])
         ang_vel = tuple(float(e) for e in ud_list[5:])
 
-        print("robot name is " + id)
-        rospy.loginfo("[RobotPlanner-%s] now this robot is moving...", id)
+        if req_id != self.robot_name:
+            rospy.loginfo("this ID(%s) is not mine.", req_id)
+            return
+
+        rospy.loginfo("[RobotPlanner-%s] now this robot is moving...", req_id)
         try:
-            self.move_by_vel(id, seconds, lin_vel, ang_vel)
-
-            self.move_by_vel(id, 10, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
-
+            moveByVel(req_id, seconds, lin_vel, ang_vel)
             self.move_res_pub.publish(req_data)
 
         except:
-            print("Failed!")
+            rospy.logerr("[RobotPlanner-%s] Failed! (/cmd_vel)", req_id)
 
-        # finally:
-        #     self.move_by_vel(id, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
-
+        finally:
+            moveByVel(req_id, STOP_SECONDS, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
 
     """
         ** todo **
