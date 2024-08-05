@@ -23,11 +23,6 @@ class Traveler:
         self.robot_name = param.name
         self.total_robot_num = 5
 
-        rospy.init_node('robot_planner_node_'+ self.robot_name)
-
-        #rotation recovery (for localization): rotation once
-        moveByVel(self.robot_name, SPIN_ONCE_SEC, SPIN_ONCE_LIN, SPIN_ONCE_ANG)
-
         # Move to target position
         rospy.Subscriber("/scene_manager/move_req", String, self.move_action, queue_size=1)
         self.move_res_pub = rospy.Publisher('scene_manager/move_res', String, queue_size=1)
@@ -54,7 +49,7 @@ class Traveler:
         # /move_base
         if len(req_list) <= 5:
             pos_x, pos_y, ort_z, ort_w = req_list[1:]
-            if moveByBase(req_id, (pos_x, pos_y), (ort_z, ort_w)):
+            if moveByBase(self.robot_name, (pos_x, pos_y), (ort_z, ort_w)):
                 self.move_res_pub.publish(req_data.data)
             else:
                 rospy.logerr("[RobotPlanner-%s] Failed! (/move_base)", req_id)
@@ -72,14 +67,14 @@ class Traveler:
             rospy.loginfo("[RobotPlanner-%s] now this robot is moving...", req_id)
 
             try:
-                moveByVel(req_id, seconds, lin_vel, ang_vel)
+                moveByVel(self.robot_name, seconds, lin_vel, ang_vel)
                 self.move_res_pub.publish(req_data)
 
             except:
                 rospy.logerr("[RobotPlanner-%s] Failed! (/cmd_vel)", req_id)
 
             finally:
-                moveByVel(req_id, STOP_SECONDS, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
+                moveByVel(self.robot_name, STOP_SECONDS, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
         
     def ctrl_module():
         pass
@@ -95,7 +90,10 @@ if __name__ == "__main__":
         '-n', '--name', required=True, help='Robot Name (multi-robot)') # ex) tb3_1
     args = parser.parse_args()
     
-    
+    rospy.init_node('robot_planner_node_'+ args.name)
+
+    #rotation recovery (for localization): rotation once
+    moveByVel(args.name, SPIN_ONCE_SEC, SPIN_ONCE_LIN, SPIN_ONCE_ANG)
 
     simple_traveler = Traveler(param=args)
     rospy.spin()
