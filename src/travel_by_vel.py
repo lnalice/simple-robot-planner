@@ -52,11 +52,16 @@ class SimpleTraveler:
         req_id = ud_list[0]
         seconds = int(ud_list[1])
         lin_vel = tuple(float(e) for e in ud_list[2:5])
-        ang_vel = tuple(float(e) for e in ud_list[5:])
+        ang_vel = tuple(float(e) for e in ud_list[5:8])
+        delay_sec = float(ud_list[8])
 
         if req_id != self.robot_name:
             rospy.loginfo("this ID(%s) is not mine.", req_id)
             return
+        
+        rospy.sleep(max(delay_sec-3, 0))
+        rospy.loginfo("[RobotPlanner-%s] now this robot is moving...\n\n", req_id)
+        rospy.sleep(3.)
 
         rospy.loginfo("[RobotPlanner-%s] now this robot is moving...", req_id)
         try:

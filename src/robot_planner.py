@@ -58,13 +58,16 @@ class Traveler:
         else: 
             seconds = int(req_list[1])
             lin_vel = tuple(float(e) for e in req_list[2:5])
-            ang_vel = tuple(float(e) for e in req_list[5:])
+            ang_vel = tuple(float(e) for e in req_list[5:8])
+            delay_sec = float(req_list[8])
 
             if req_id != self.robot_name:
                 rospy.loginfo("this ID(%s) is not mine.", req_id)
                 return
-
-            rospy.loginfo("[RobotPlanner-%s] now this robot is moving...", req_id)
+            
+            rospy.sleep(max(delay_sec-3, 0))
+            rospy.loginfo("[RobotPlanner-%s] now this robot is moving...\n\n", req_id)
+            rospy.sleep(3.)
 
             try:
                 moveByVel(self.robot_name, seconds, lin_vel, ang_vel)
