@@ -70,13 +70,13 @@ class Traveler:
 
             try:
                 moveByVel(self.robot_name, seconds, lin_vel, ang_vel)
-                self.move_res_pub.publish(req_data)
 
             except:
                 rospy.logerr("[RobotPlanner-%s] Failed! (/cmd_vel)", req_id)
 
             finally:
                 moveByVel(self.robot_name, STOP_SECONDS, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
+                self.move_res_pub.publish(req_data)
         
     def ctrl_module(self, req_data):
 
@@ -94,6 +94,7 @@ class Traveler:
 
         moveByVel(self.robot_name, SPIN_ONCE_SEC, SPIN_ONCE_LIN, SPIN_ONCE_ANG)
 
+        self.ctrl_module_res_pub.publish(req_data)
 
     def go_home():
         pass
