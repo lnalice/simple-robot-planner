@@ -11,7 +11,7 @@ import argparse
 from publisher.moveBasePub import moveByBase
 from publisher.cmdVelPub import moveByVel
 
-STOP_SECONDS = 5
+STOP_SECONDS = 3
 SPIN_ONCE_SEC = 10.3
 SPIN_ONCE_LIN = (0, 0, 0)
 SPIN_ONCE_ANG = (0, 0, 0.60)
@@ -65,9 +65,8 @@ class Traveler:
                 rospy.loginfo("this ID(%s) is not mine.", req_id)
                 return
             
-            rospy.sleep(max(delay_sec-3, 0))
+            rospy.sleep(int(delay_sec))
             rospy.loginfo("[RobotPlanner-%s] now this robot is moving...\n\n", req_id)
-            rospy.sleep(3.)
 
             try:
                 moveByVel(self.robot_name, seconds, lin_vel, ang_vel)
@@ -79,8 +78,22 @@ class Traveler:
             finally:
                 moveByVel(self.robot_name, STOP_SECONDS, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
         
-    def ctrl_module():
-        pass
+    def ctrl_module(self, req_data):
+
+        req_list = tuple(str(req_data.data).split(" "))
+        req_id, ctrl_range, delay_sec = req_list
+
+        if req_id != self.robot_name:
+            rospy.loginfo("[RobotPlanner-%s] This ID(%s) is not mine.", self.robot_name, req_id)
+            return
+        
+        rospy.sleep(0.1)
+
+        rospy.sleep(int(delay_sec))
+        rospy.loginfo("[RobotPlanner-%s] now this robot will be soon controlling the module...\n\n", req_id)
+
+        moveByVel(self.robot_name, SPIN_ONCE_SEC, SPIN_ONCE_LIN, SPIN_ONCE_ANG)
+
 
     def go_home():
         pass
