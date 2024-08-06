@@ -12,9 +12,9 @@ from publisher.moveBasePub import moveByBase
 from publisher.cmdVelPub import moveByVel
 
 STOP_SECONDS = 3
-SPIN_ONCE_SEC = 10.3
+SPIN_ONCE_SEC = 10.2
 SPIN_ONCE_LIN = (0, 0, 0)
-SPIN_ONCE_ANG = (0, 0, 0.60)
+SPIN_ONCE_ANG = (0, 0, 0.61)
 
 class Traveler:
     def __init__(self, param):
@@ -70,6 +70,7 @@ class Traveler:
 
             try:
                 moveByVel(self.robot_name, seconds, lin_vel, ang_vel)
+                moveByVel(self.robot_name, seconds, (0.0, 0.0, 0.0), (0.0, 0.0, -ang_vel[-1]))
 
             except:
                 rospy.logerr("[RobotPlanner-%s] Failed! (/cmd_vel)", req_id)
@@ -111,6 +112,8 @@ if __name__ == "__main__":
 
     #rotation recovery (for localization): rotation once
     moveByVel(args.name, SPIN_ONCE_SEC, SPIN_ONCE_LIN, SPIN_ONCE_ANG)
+
+    rospy.loginfo('[RobotPlanner-%s] I\'m ready!', args.name)
 
     simple_traveler = Traveler(param=args)
     rospy.spin()
