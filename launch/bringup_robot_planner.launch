@@ -1,0 +1,9 @@
+<launch>
+    <arg name="robot_name" default="tb3_0" doc="[tb3_0, tb3_1, tb3_2, tb3_3, tb3_4]" />
+
+    <node pkg="robot_planner" type="robot_planner.py" name="robot_planner_node_${arg robot_name}" />
+
+    <include file="$(find turtlebot3_bringup)/launch/turtlebot3_robot.launch">
+        <arg name="multi_robot_name" value="$(arg robot_name)" />
+    </include>
+</launch>
