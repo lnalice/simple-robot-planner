@@ -8,20 +8,28 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from std_msgs.msg import String
 import argparse
 
+import math
+
 from publisher.moveBasePub import moveByBase
 from publisher.cmdVelPub import moveByVel
 
-STOP_SECONDS = 3
-SPIN_ONCE_SEC = 10.2
+STOP_SECONDS = 2
+SPIN_ONCE_SEC = 10
 SPIN_ONCE_LIN = (0, 0, 0)
-SPIN_ONCE_ANG = (0, 0, 0.61)
+SPIN_ONCE_ANG = (0, 0, 2*math.pi / SPIN_ONCE_SEC)
+DIR_ADJUSTMENT_SEC = 3
 
 class Traveler:
     def __init__(self, param):
-        # Initialize ROS
 
         self.robot_name = param.name
+        # self.robot_name = rospy.get_param("~robot_name")
         self.total_robot_num = 5
+
+        rospy.init_node('robot_planner_node_'+ self.robot_name)
+
+        #rotation recovery (for localization): rotation once
+        moveByVel(self.robot_name, SPIN_ONCE_SEC, SPIN_ONCE_LIN, SPIN_ONCE_ANG)
 
         # Move to target position
         rospy.Subscriber("/scene_manager/move_req", String, self.move_action, queue_size=1)
@@ -34,6 +42,8 @@ class Traveler:
         # Come back home (move to initial position)
         rospy.Subscriber("/scene_manager/go_home", String, self.go_home, queue_size=1)
         self.come_back_pub = rospy.Publisher('/scene_manager/come_back_home', String, queue_size=1)
+
+        rospy.loginfo('[RobotPlanner-%s] I\'m ready!', self.robot_name)
 
     def move_action(self, req_data):
 
@@ -70,7 +80,10 @@ class Traveler:
 
             try:
                 moveByVel(self.robot_name, seconds, lin_vel, ang_vel)
-                moveByVel(self.robot_name, seconds, (0.0, 0.0, 0.0), (0.0, 0.0, -ang_vel[-1]))
+                # direction adjustment using cmd_vel
+                if lin_vel[0] != 0 and ang_vel[-1] != 0:
+                    _ang_vel = (-ang_vel[-1] * seconds) / DIR_ADJUSTMENT_SEC
+                    moveByVel(self.robot_name, DIR_ADJUSTMENT_SEC, (0.0, 0.0, 0.0), (0.0, 0.0, _ang_vel))
 
             except:
                 rospy.logerr("[RobotPlanner-%s] Failed! (/cmd_vel)", req_id)
@@ -108,12 +121,6 @@ if __name__ == "__main__":
         '-n', '--name', required=True, help='Robot Name (multi-robot)') # ex) tb3_1
     args = parser.parse_args()
     
-    rospy.init_node('robot_planner_node_'+ args.name)
-
-    #rotation recovery (for localization): rotation once
-    moveByVel(args.name, SPIN_ONCE_SEC, SPIN_ONCE_LIN, SPIN_ONCE_ANG)
-
-    rospy.loginfo('[RobotPlanner-%s] I\'m ready!', args.name)
-
     simple_traveler = Traveler(param=args)
+    # simple_traveler = Traveler()
     rospy.spin()
