@@ -12,6 +12,7 @@ import math
 
 from publisher.moveBasePub import moveByBase
 from publisher.cmdVelPub import moveByVel
+from publisher.ctrlModulePub import ctrlByVel
 
 STOP_SECONDS = 2
 SPIN_ONCE_SEC = 10
@@ -106,7 +107,7 @@ class Traveler:
         rospy.sleep(int(delay_sec))
         rospy.loginfo("[RobotPlanner-%s] now this robot will be soon controlling the module...\n\n", req_id)
 
-        moveByVel(self.robot_name, SPIN_ONCE_SEC, SPIN_ONCE_LIN, SPIN_ONCE_ANG)
+        ctrlByVel(self.robot_name, float(ctrl_range), 6)
 
         self.ctrl_module_res_pub.publish(req_data)
 
