@@ -1,7 +1,7 @@
 import rospy
 from std_msgs.msg import Float64
 
-def ctrlByVel(robot_id: str, vel_data: float, seconds: int) -> bool:
+def ctrlByVel(robot_id: str, seconds: int, vel_data: float) -> bool:
 
         ctrl_module_topic = robot_id + '/' + 'module_vel'
 
@@ -10,33 +10,14 @@ def ctrlByVel(robot_id: str, vel_data: float, seconds: int) -> bool:
 
         start_time = rospy.Time.now().to_sec()
         
-        rospy.loginfo('[RobotPlanner-%s] Now the module will be moving', id)
+        if vel_data != 0:
+            rospy.loginfo('[RobotPlanner-%s] Now the module will be moving', id)
 
         while(rospy.Time.now().to_sec() - start_time < seconds):
             pub.publish(msg)
-            rospy.loginfo('[RobotPlanner-%s] Hooray, I controlled the module', id)
+            rospy.loginfo("currently:\tvel_data %f " %vel_data)
         
-        pub.publish(Float64(0.0))
-        # t = 0
-        # while(t <= 5):
-        #     pub.publish(Float64(0.0))
-        #     t += 1
-
-        # try:
-        #     while(rospy.Time.now().to_sec() - start_time < seconds):
-        #         pub.publish(msg)
-        #     rospy.loginfo('[RobotPlanner-%s] Hooray, I controlled the module', id)
-
-        # except:
-        #      rospy.logerr('[RobotPlanner-%s] Something wrong..', id)
-
-        # finally:
-        #      t = 0
-        #      while(t <= 10):
-        #           msg = Float64(0.0)
-        #           pub.publish(msg)
-
-        #           t += 1
+        rospy.loginfo('[RobotPlanner-%s] Hooray, I controlled the module', id)
 
         return True
 
