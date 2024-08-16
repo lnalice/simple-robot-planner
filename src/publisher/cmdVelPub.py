@@ -3,7 +3,8 @@ from geometry_msgs.msg import Twist
 
 def moveByVel(robot_id: str, seconds: int, lin_vel: tuple, ang_vel:tuple) -> None:
     
-    cmd_vel_topic = robot_id + '/cmd_vel' #multi robot
+    cmd_vel_topic = 'cmd_vel'
+
     pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=10)
     
     start_time = rospy.Time.now().to_sec()

@@ -3,7 +3,7 @@ from std_msgs.msg import Float64
 
 def ctrlByVel(robot_id: str, seconds: int, vel_data: float) -> bool:
 
-        ctrl_module_topic = robot_id + '/' + 'module_vel'
+        ctrl_module_topic = 'module_vel'
 
         pub = rospy.Publisher(ctrl_module_topic, Float64, queue_size=1)
         msg = Float64(vel_data)

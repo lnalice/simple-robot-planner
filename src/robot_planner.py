@@ -21,10 +21,10 @@ SPIN_ONCE_ANG = (0, 0, 2*math.pi / SPIN_ONCE_SEC)
 DIR_ADJUSTMENT_SEC = 3
 
 class Traveler:
-    def __init__(self, param):
+    def __init__(self):
 
-        self.robot_name = param.name
-        # self.robot_name = rospy.get_param("~robot_name")
+        # self.robot_name = param.name
+        self.robot_name = rospy.get_param("~multi_robot_name", "tb3_0")
         self.total_robot_num = 5
 
         rospy.init_node('robot_planner_node_'+ self.robot_name)
@@ -34,7 +34,7 @@ class Traveler:
 
         # Move to target position
         rospy.Subscriber("/scene_manager/move_req", String, self.move_action, queue_size=1)
-        self.move_res_pub = rospy.Publisher('scene_manager/move_res', String, queue_size=1)
+        self.move_res_pub = rospy.Publisher('/scene_manager/move_res', String, queue_size=1)
 
         # Take a spin on the spot
         rospy.Subscriber("/scene_manager/ctrl_module_req", String, self.ctrl_module, queue_size=1)
@@ -124,12 +124,12 @@ class Traveler:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="robot specification",
-                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument(
-        '-n', '--name', required=True, help='Robot Name (multi-robot)') # ex) tb3_1
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser(description="robot specification",
+    #                              formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    # parser.add_argument(
+    #     '-n', '--name', required=True, help='Robot Name (multi-robot)') # ex) tb3_1
+    # args = parser.parse_args()
     
-    simple_traveler = Traveler(param=args)
-    # simple_traveler = Traveler()
+    # simple_traveler = Traveler(param=args)
+    simple_traveler = Traveler()
     rospy.spin()

@@ -7,8 +7,7 @@ def moveByBase(robot_id: str, pos_data: tuple, ort_data: tuple) -> bool:
         pos_x, pos_y = pos_data
         ort_z, ort_w = ort_data
 
-        move_base_topic = robot_id + '/' + 'move_base'
-        # move_base_topic = '/move_base' # only one robot
+        move_base_topic = 'move_base'
 
         client = actionlib.SimpleActionClient(move_base_topic, MoveBaseAction)
 
