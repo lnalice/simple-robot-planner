@@ -4,10 +4,10 @@ import rospy
 import actionlib
 from actionlib_msgs.msg import GoalStatus
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-
 from std_msgs.msg import String
-import argparse
 
+import os
+import argparse
 import math
 
 from publisher.moveBasePub import moveByBase
@@ -23,9 +23,17 @@ DIR_ADJUSTMENT_SEC = 3
 class Traveler:
     def __init__(self):
 
+        """
+        how to set robot name
+        1. use argeparser
+        2. use rospy.get_param
+        3. use env [selected]
+        """
         # self.robot_name = param.name
-        self.robot_name = rospy.get_param("~multi_robot_name", "tb3_0")
-        self.total_robot_num = 5
+        # self.robot_name = rospy.get_param("multi_robot_name")
+        self.robot_name = os.getenv('ROBOT_NAME', 'tb3_#')
+
+        rospy.loginfo("**Robot name is... " + self.robot_name)
 
         rospy.init_node('robot_planner_node_'+ self.robot_name)
 
