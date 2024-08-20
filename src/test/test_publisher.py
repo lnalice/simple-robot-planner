@@ -56,7 +56,10 @@ if __name__ == "__main__":
     
     msg = command + " " + scene_id + " " + IDs
 
-    rospy.sleep(0.1)
-
-    pub.publish(msg)
-    rospy.loginfo("I sent topic \"%s\"", msg)
+    times = 0
+    rospy.loginfo("I will send topic \"%s\"", msg)
+    while times < 10:
+        rospy.sleep(0.2)
+        pub.publish(msg)
+        times += 1
+    rospy.loginfo("Done")
