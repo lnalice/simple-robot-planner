@@ -38,7 +38,7 @@ class Traveler:
         rospy.init_node('robot_planner_node_'+ self.robot_name)
 
         #rotation recovery (for localization): rotation once
-        moveByVel(self.robot_name, SPIN_ONCE_SEC, SPIN_ONCE_LIN, SPIN_ONCE_ANG)
+        # moveByVel(self.robot_name, SPIN_ONCE_SEC, SPIN_ONCE_LIN, SPIN_ONCE_ANG)
 
         # Move to target position
         rospy.Subscriber("/scene_manager/move_req", String, self.move_action, queue_size=1)
@@ -51,6 +51,10 @@ class Traveler:
         # Come back home (move to initial position)
         rospy.Subscriber("/scene_manager/go_home", String, self.go_home, queue_size=1)
         self.come_back_pub = rospy.Publisher('/scene_manager/come_back_home', String, queue_size=1)
+        
+        # /cmd_vel
+        self.displacement_y = 0.0
+        self.displacement_x = 0.0
 
         rospy.loginfo('[RobotPlanner-%s] I\'m ready!', self.robot_name)
 
@@ -83,6 +87,9 @@ class Traveler:
             if req_id != self.robot_name:
                 rospy.loginfo("this ID(%s) is not mine.", req_id)
                 return
+            
+            self.displacement_y += lin_vel[0] * seconds
+            self.displacement_x += ang_vel[2] * seconds
             
             rospy.sleep(int(delay_sec))
             rospy.logwarn("[RobotPlanner-%s] now this robot is moving...\n\n", req_id)
@@ -127,7 +134,7 @@ class Traveler:
 
         self.ctrl_module_res_pub.publish(req_data)
 
-    def go_home():
+    def go_home(self):
         pass
 
 
