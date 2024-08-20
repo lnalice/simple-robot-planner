@@ -10,7 +10,7 @@
         <arg name="set_frame_id" value="$(arg set_lidar_frame_id)"/>
     </include>
     
-    <node pkg="robot_planner" type="robot_planner.py" name="robot_planner_node_$(arg multi_robot_name)">
+    <node pkg="robot_planner" type="robot_planner.py" name="robot_planner_node_$(arg multi_robot_name)" output="screen">
         <param name="multi_robot_name" value="$(arg multi_robot_name)" />
     </node>
 </launch>
