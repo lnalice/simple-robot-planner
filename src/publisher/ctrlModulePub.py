@@ -10,8 +10,8 @@ def ctrlByVel(robot_id: str, seconds: int, vel_data: float) -> bool:
 
         start_time = rospy.Time.now().to_sec()
         
-        if vel_data != 0:
-            rospy.loginfo('[RobotPlanner-%s] Now the module will be moving', id)
+        # if vel_data != 0:
+            # rospy.logwarn('[RobotPlanner-%s] Now the module will be moving', id)
 
         while(rospy.Time.now().to_sec() - start_time < seconds):
             pub.publish(msg)

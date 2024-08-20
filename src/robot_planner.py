@@ -85,7 +85,7 @@ class Traveler:
                 return
             
             rospy.sleep(int(delay_sec))
-            rospy.loginfo("[RobotPlanner-%s] now this robot is moving...\n\n", req_id)
+            rospy.logwarn("[RobotPlanner-%s] now this robot is moving...\n\n", req_id)
 
             try:
                 moveByVel(self.robot_name, seconds, lin_vel, ang_vel)
@@ -113,7 +113,7 @@ class Traveler:
         rospy.sleep(0.1)
 
         rospy.sleep(int(delay_sec))
-        rospy.loginfo("[RobotPlanner-%s] now this robot will be soon controlling the module...\n\n", req_id)
+        rospy.logwarn("[RobotPlanner-%s] now this robot will be soon controlling the module...\n\n", req_id)
 
         try:
             ctrlByVel(self.robot_name, int(ctrl_sec), float(ctrl_vel))

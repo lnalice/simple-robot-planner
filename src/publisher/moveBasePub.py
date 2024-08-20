@@ -37,7 +37,7 @@ def moveByBase(robot_id: str, pos_data: tuple, ort_data: tuple) -> bool:
         client.wait_for_result()
 
         if client.get_state() != GoalStatus.SUCCEEDED:
-            rospy.loginfo('[RobotPlanner-%s] The base failed to move for some reason', id)
+            rospy.logerr('[RobotPlanner-%s] The base failed to move for some reason', id)
             return False
         
         rospy.loginfo('[RobotPlanner-%s] Hooray, I reached the goal', id)
