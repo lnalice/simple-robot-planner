@@ -142,7 +142,8 @@ class Traveler:
         seconds = self.displacement_x / COMEBACK_VEL
         ang_vel = 0 if seconds == 0 else self.displacement_z / seconds
 
-        self.displacement_x = 0, self.displacement_z = 0
+        self.displacement_x = 0
+        self.displacement_z = 0
 
         rospy.logwarn("[RobotPlanner-%s] now this robot is moving...\n\n", self.robot_name)
         
