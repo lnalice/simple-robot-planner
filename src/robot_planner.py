@@ -19,6 +19,7 @@ SPIN_ONCE_SEC = 10
 SPIN_ONCE_LIN = (0, 0, 0)
 SPIN_ONCE_ANG = (0, 0, 2*math.pi / SPIN_ONCE_SEC)
 DIR_ADJUSTMENT_SEC = 3
+COMEBACK_VEL = 0.15
 
 class Traveler:
     def __init__(self):
@@ -53,8 +54,8 @@ class Traveler:
         self.come_back_pub = rospy.Publisher('/scene_manager/come_back_home', String, queue_size=1)
         
         # /cmd_vel
-        self.displacement_y = 0.0
-        self.displacement_x = 0.0
+        self.displacement_x :float = 0.0
+        self.displacement_z :float = 0.0
 
         rospy.loginfo('[RobotPlanner-%s] I\'m ready!', self.robot_name)
 
@@ -88,8 +89,8 @@ class Traveler:
                 rospy.loginfo("this ID(%s) is not mine.", req_id)
                 return
             
-            self.displacement_y += lin_vel[0] * seconds
-            self.displacement_x += ang_vel[2] * seconds
+            self.displacement_x += lin_vel[0] * seconds
+            self.displacement_z += ang_vel[2] * seconds
             
             rospy.sleep(int(delay_sec))
             rospy.logwarn("[RobotPlanner-%s] now this robot is moving...\n\n", req_id)
@@ -97,7 +98,7 @@ class Traveler:
             try:
                 moveByVel(self.robot_name, seconds, lin_vel, ang_vel)
                 # direction adjustment using cmd_vel
-                if lin_vel[0] != 0 and ang_vel[-1] != 0:
+                if ang_vel[-1] != 0:
                     _ang_vel = (-ang_vel[-1] * seconds) / DIR_ADJUSTMENT_SEC
                     moveByVel(self.robot_name, DIR_ADJUSTMENT_SEC, (0.0, 0.0, 0.0), (0.0, 0.0, _ang_vel))
 
@@ -134,8 +135,30 @@ class Traveler:
 
         self.ctrl_module_res_pub.publish(req_data)
 
-    def go_home(self):
-        pass
+    def go_home(self, req_data):
+        if str(req_data.data) != self.robot_name:
+            rospy.loginfo("[RobotPlanner-%s] This id(%s) is not mine.", self.robot_name, req_data.data)
+            return
+        seconds = self.displacement_x / COMEBACK_VEL
+        ang_vel = 0 if seconds == 0 else self.displacement_z / seconds
+
+        self.displacement_x = 0, self.displacement_z = 0
+
+        rospy.logwarn("[RobotPlanner-%s] now this robot is moving...\n\n", self.robot_name)
+        
+        try:
+            moveByVel(self.robot_name, seconds, (-COMEBACK_VEL, 0.0, 0.0), (0.0, 0.0, ang_vel))
+            # direction adjustment using cmd_vel
+            if ang_vel[-1] != 0:
+                _ang_vel = (-ang_vel[-1] * seconds) / DIR_ADJUSTMENT_SEC
+                moveByVel(self.robot_name, DIR_ADJUSTMENT_SEC, (0.0, 0.0, 0.0), (0.0, 0.0, _ang_vel))
+
+        except:
+            rospy.logerr("[RobotPlanner-%s] Failed! (/cmd_vel)", self.robot_name)
+
+        finally:
+            moveByVel(self.robot_name, STOP_SECONDS, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
+            self.come_back_pub.publish(req_data)
 
 
 if __name__ == "__main__":
