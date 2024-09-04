@@ -12,7 +12,7 @@ import math
 
 from publisher.moveBasePub import moveByBase
 from publisher.cmdVelPub import moveByVel
-from publisher.ctrlModulePub import ctrlByVel
+from publisher.ctrlModulePub import ctrlByVel, ctrlByPos
 
 STOP_SECONDS = 2
 SPIN_ONCE_SEC = 10
@@ -112,7 +112,7 @@ class Traveler:
     def ctrl_module(self, req_data):
 
         req_list = tuple(str(req_data.data).split(" "))
-        req_id, ctrl_sec, ctrl_vel, delay_sec = req_list
+        req_id, vert_degree, horizon_degree, delay_sec = req_list
 
         if req_id != self.robot_name:
             rospy.loginfo("[RobotPlanner-%s] This ID(%s) is not mine.", self.robot_name, req_id)
@@ -124,16 +124,12 @@ class Traveler:
         rospy.logwarn("[RobotPlanner-%s] now this robot will be soon controlling the module...\n\n", req_id)
 
         try:
-            ctrlByVel(self.robot_name, int(ctrl_sec), float(ctrl_vel))
+            ctrlByPos(self.robot_name, float(vert_degree), float(horizon_degree))
         except:
-            rospy.logerr("[RobotPlanner-%s] Failed! (/module_vel)", req_id)
-        
+            rospy.logerr("[RobotPlanner-%s] Failed! (/module_pos)", req_id)
+            ctrlByPos(self.robot_name, 0.0, 0.0)
         finally:
-            ctrlByVel(self.robot_name, STOP_SECONDS, 0.0)
-            self.move_res_pub.publish(req_data)
-        
-
-        self.ctrl_module_res_pub.publish(req_data)
+            self.ctrl_module_res_pub.publish(req_data)
 
     def go_home(self, req_data):
         if str(req_data.data) != self.robot_name:
