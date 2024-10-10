@@ -14,6 +14,8 @@ from publisher.moveBasePub import moveByBase
 from publisher.cmdVelPub import moveByVel
 from publisher.ctrlModulePub import ctrlByVel, ctrlByPos
 
+from publisher.blinkLedPub import blinkLed
+
 STOP_SECONDS = 2
 SPIN_ONCE_SEC = 10
 SPIN_ONCE_LIN = (0, 0, 0)
@@ -96,8 +98,10 @@ class Traveler:
             rospy.logwarn("[RobotPlanner-%s] now this robot is moving...\n\n", req_id)
 
             try:
-                moveByVel(self.robot_name, seconds, lin_vel, ang_vel)
-                # direction adjustment using cmd_vel
+                blinkLed(self.robot_name, lin_vel, ang_vel, 0, 0) # blink LED
+                moveByVel(self.robot_name, seconds, lin_vel, ang_vel) # move using cmd_vel
+                
+                # <recovery> direction adjustment using cmd_vel
                 if ang_vel[-1] != 0:
                     _ang_vel = (-ang_vel[-1] * seconds) / DIR_ADJUSTMENT_SEC
                     moveByVel(self.robot_name, DIR_ADJUSTMENT_SEC, (0.0, 0.0, 0.0), (0.0, 0.0, _ang_vel))
@@ -124,7 +128,8 @@ class Traveler:
         rospy.logwarn("[RobotPlanner-%s] now this robot will be soon controlling the module...\n\n", req_id)
 
         try:
-            ctrlByPos(self.robot_name, float(vert_degree), float(horizon_degree))
+            blinkLed(self.robot_name, 0, 0, float(vert_degree), float(horizon_degree)) # blink LED
+            ctrlByPos(self.robot_name, float(vert_degree), float(horizon_degree)) # control module
         except:
             rospy.logerr("[RobotPlanner-%s] Failed! (/module_pos)", req_id)
             ctrlByPos(self.robot_name, 0.0, 0.0)
