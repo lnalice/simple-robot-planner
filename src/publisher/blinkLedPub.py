@@ -1,14 +1,14 @@
 import rospy
-from std_msgs.msg import Float64MultiArray
+from std_msgs.msg import Byte
 
-def blinkLed(robot_id: str, linX: float, angZ: float, deg1: float, deg2: float) -> bool:
+def blinkLed(robot_id: str, led_status: Byte) -> bool:
 
         blink_led_topic = 'blink_led'
 
-        pub = rospy.Publisher(blink_led_topic, Float64MultiArray, queue_size=1)
-        msg = Float64MultiArray()
+        pub = rospy.Publisher(blink_led_topic, Byte, queue_size=1)
+        msg = Byte()
 
-        msg.data = [linX, angZ, deg1, deg2]
+        msg.data = led_status
 
         rospy.sleep(0.1)
 
