@@ -1,7 +1,7 @@
 import rospy
 from std_msgs.msg import Byte
 
-def blinkLed(robot_id: str, led_status: Byte) -> bool:
+def blinkLed(robot_id: str, led_status: int) -> bool:
 
         blink_led_topic = 'blink_led'
 

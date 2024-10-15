@@ -2,16 +2,16 @@
 @param linear_velocity.x , angular_velocity.z
 @return FRONT | RIGHT | BACK | LEFT
 """
-def vel2statusByte (linX: float, angZ: float) -> bytes:
-    led_pins = ['F', 'R', 'B', 'L'] # front right back left (시계방향)
+def vel2statusByte (linX: float, angZ: float) -> int:
+    led_pins = {'F': 0b0001, 'R': 0b0010, 'B': 0b0100, 'L': 0b1000, 'A': 0b1111} # front right back left (시계방향)
 
-    if angZ > 0.2: # LEFT
-        return bin(1 << led_pins.index('L'))
-    if angZ < -0.2: # RIGHT
-        return bin(1 << led_pins.index('R'))
+    if angZ > 0.04: # LEFT
+        return led_pins['L']
+    if angZ < -0.04: # RIGHT
+        return led_pins['R']
     if linX > 0: # FRONT
-        return bin(1 << led_pins.index('F'))
+        return led_pins['F']
     if linX < 0: # BACK
-        return bin(1 << led_pins.index('B'))
+        return led_pins['B']
     
-    return '0b1111'  # spin
+    return led_pins['A']  # spin
