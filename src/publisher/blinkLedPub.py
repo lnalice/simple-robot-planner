@@ -16,5 +16,7 @@ def blinkLed(robot_id: str, led_status: int) -> bool:
         
         rospy.loginfo('[RobotPlanner-%s] I would blink LEDs', robot_id)
 
+        rospy.sleep(1)
+
         return True
 
