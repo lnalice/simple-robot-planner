@@ -1,13 +1,16 @@
 import rospy
 from geometry_msgs.msg import Twist
 
-def moveByVel(robot_id: str, seconds: int, lin_vel: tuple, ang_vel:tuple) -> None:
+def moveByVel(robot_id: str, seconds: int, linX: float, angZ: float) -> None:
     
     cmd_vel_topic = 'cmd_vel'
 
     pub = rospy.Publisher(cmd_vel_topic, Twist, queue_size=10)
     
     start_time = rospy.Time.now().to_sec()
+
+    lin_vel = (linX, 0.0, 0.0)
+    ang_vel = (0.0, 0.0, angZ)
 
     while(rospy.Time.now().to_sec() - start_time < seconds):
         twist = Twist()
