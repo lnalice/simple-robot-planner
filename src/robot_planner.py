@@ -53,7 +53,7 @@ class RobotPlanner:
         # /cmd_vel
         seconds, linX, angZ, delay = goal_tuple
             
-        if int(delay) > 0:
+        if float(delay) > 0:
             rospy.logwarn("[RobotPlanner-%s] Delay time is %s.\n", self.robot_name, delay)
             rospy.sleep(int(delay))
             
@@ -82,22 +82,18 @@ class RobotPlanner:
     def ctrl_module(self, goal_data):
 
         req_list = tuple(str(goal_data.data).split(" "))
-        req_id, degZ, degX, delay = req_list
+        degZ, degX, delay = req_list
 
-        if req_id != self.robot_name:
-            rospy.loginfo("[RobotPlanner-%s] This ID(%s) is not mine.", self.robot_name, req_id)
-            return
-        
         rospy.sleep(0.1)
 
         rospy.sleep(int(delay))
-        rospy.logwarn("[RobotPlanner-%s] now this robot will be soon controlling the module...\n\n", req_id)
+        rospy.logwarn("[RobotPlanner-%s] now this robot will be soon controlling the module...\n\n", self.robot_name )
 
         try:
             blinkLed(self.robot_name, vel2statusByte(0,0)) # blink LED
             ctrlByPos(self.robot_name, float(degZ), float(degX)) # control module
         except:
-            rospy.logerr("[RobotPlanner-%s] Failed! (/module_pos)", req_id)
+            rospy.logerr("[RobotPlanner-%s] Failed! (/module_pos)", self.robot_name )
             ctrlByPos(self.robot_name, 0.0, 0.0)
         finally:
             self.ctrl_module_res_pub.publish(goal_data)
